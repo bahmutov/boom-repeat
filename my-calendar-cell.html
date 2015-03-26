@@ -1,0 +1,12 @@
+<div ng-click="cellClicked(day, hour)" ng-class="cellClass()">
+  <div ng-if="showHour()" class="time">
+    {{hour}}:00
+  </div>
+  <div ng-if="showSpinner()">
+    ...
+  </div>
+  <div ng-if="showSearchResults()">
+    <div>{{status.searchResults.options}}</div>
+    <div class="result-label">results</div>
+  </div>
+</div>

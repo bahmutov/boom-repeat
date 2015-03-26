@@ -1,0 +1,131 @@
+<!doctype html>
+<html>
+  <head>
+    <title>boom-repeat</title>
+    <link rel="stylesheet" href="style.css">
+    <!--
+    <script src="jquery.min.js"></script>
+    -->
+    <script src="angular.js"></script>
+    <script src="boom-repeat.js"></script>
+    <script>
+    angular.module('myapp', ['BoomRepeat'])
+      .directive("myCalendarCell", function() {
+        return {
+          restrict: 'E',
+          replace: true,
+          // scope: false,
+          // controllerAs: 'ctrl',
+          templateUrl: 'my-calendar-cell',
+          link: function(scope, element, attrs) {
+            // console.log('link myCalendarCell')
+            scope.day = attrs.day;
+            scope.hour = attrs.hour;
+            scope.status = {};
+          },
+          controller: function($scope, $rootScope, $timeout) {
+            // console.log('controller myCalendarCell')
+            $scope.showSpinner = function() {
+              return $scope.status.isSearching;
+            }
+            $scope.showHour = function() {
+              return !$scope.status.isSearching && !$scope.status.searchResults;
+            }
+            $scope.showSearchResults = function() {
+              return $scope.status.searchResults;
+            }
+            $scope.cellClass = function() {
+              if ($scope.status.isSearching) {
+                return 'searching';
+              } else if ($scope.status.searchResults) {
+                if ($scope.status.searchResults.options > 3) {
+                  return 'good-results'
+                } else if ($scope.status.searchResults.options > 1) {
+                  return 'weak-results'
+                } else {
+                  return 'bad-results'
+                }
+              }
+            }
+            $scope.cellClicked = function() {
+              delete $scope.status.searchResults;
+              $scope.status.isSearching = true;
+              // Simulate an AJAX request:
+              $timeout(function() {
+                $scope.status.isSearching = false;
+                $scope.status.searchResults = {options: Math.floor(Math.random() * 5)};
+              }, randomMillis());
+            }
+            $scope.$on('allSearchRequested', function() {
+              $scope.cellClicked();
+            });
+          }
+        }
+      })
+      .controller('ctrl', function ($scope) {
+        var days = 31, hours = 24, k;
+
+        $scope.days = [];
+        for (k = 0; k < days; k += 1) {
+          $scope.days.push('Oct ' + (k + 1));
+        }
+
+        $scope.hours = [];
+        for (k = 0; k < hours; k += 1) {
+          $scope.hours.push(k);
+        }
+
+        $scope.load = function load() {
+          $scope.loaded = true;
+          console.log('loading');
+        };
+      });
+    </script>
+  </head>
+  <body ng-controller="ctrl">
+    <h1>ng-repeat</h1>
+
+    <!--
+    <p boom-repeat="k in numbers">
+      number {{ k }}
+    </p>
+    -->
+    <button class="btn" id="load" ng-click="load()" ng-disabled="loaded">Load</button>
+
+    <table ng-if="loaded">
+     <tr>
+      <th ng-repeat="day in days" class="day-header">
+        {{day}}
+      </th>
+     </tr>
+
+     <tr ng-repeat="hour in hours">
+      <td ng-repeat="day in days" class="hour-cell">
+        <my-calendar-cell hour="{{hour}}" day="{{day}}"></my-calendar-cell>
+      </td>
+     </tr>
+    </table>
+
+    <p>Stuff after the table</p>
+
+    <script type="text/ng-template" id="my-calendar-cell">
+      <div ng-click="cellClicked(day, hour)" ng-class="cellClass()">
+        <div ng-if="showHour()" class="time">
+          {{hour}}:00
+        </div>
+        <div ng-if="showSpinner()">
+          ...
+        </div>
+        <div ng-if="showSearchResults()">
+          <div>{{status.searchResults.options}}</div>
+          <div class="result-label">results</div>
+        </div>
+      </div>
+
+    </script>
+
+    <script>
+      angular.bootstrap(document, ['myapp']);
+    </script>
+  </body>
+</html>
