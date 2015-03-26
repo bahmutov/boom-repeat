@@ -9,7 +9,13 @@
     <script src="angular.js"></script>
     <script src="boom-repeat.js"></script>
     <script>
+    var randomMillis = function() {
+      return Math.floor(Math.random() * 0);
+    }
     angular.module('myapp', ['BoomRepeat'])
+      .config(['$compileProvider', function ($compileProvider) {
+        // $compileProvider.debugInfoEnabled(false);
+      }])
       .directive("myCalendarCell", function() {
         return {
           restrict: 'E',
@@ -94,13 +100,13 @@
 
     <table ng-if="loaded">
      <tr>
-      <th ng-repeat="day in days" class="day-header">
+      <th boom-repeat="day in days" class="day-header">
         {{day}}
       </th>
      </tr>
 
-     <tr ng-repeat="hour in hours">
-      <td ng-repeat="day in days" class="hour-cell">
+     <tr boom-repeat="hour in hours">
+      <td boom-repeat="day in days" class="hour-cell">
         <my-calendar-cell hour="{{hour}}" day="{{day}}"></my-calendar-cell>
       </td>
      </tr>

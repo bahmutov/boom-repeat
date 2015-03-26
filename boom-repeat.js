@@ -139,6 +139,26 @@ directive('boomRepeat', ['$parse', '$animate', '$rootScope', function($parse, $a
         // hasOwnProperty.
         var lastBlockMap = createMap();
 
+        var fragment = document.createDocumentFragment();
+        var fragmentsReceived = 0;
+        $scope.boomRepeatFragment = function (childFragment) {
+          var keys = Object.keys(lastBlockMap);
+          // console.log('received fragment from child', fragmentsReceived);
+          var key = keys[fragmentsReceived];
+          var f = lastBlockMap[key].clone[0];
+          // fragment.appendChild(childFragment);
+          fragment.appendChild(f);
+          fragment.appendChild(childFragment);
+
+          var expectedFragments = keys.length;
+          fragmentsReceived += 1;
+          if (fragmentsReceived === expectedFragments) {
+            $rootScope.$evalAsync(function () {
+              $element.parent().append(fragment);
+            });
+          }
+        };
+
         //watch props
         $scope.$watchCollection(rhs, function ngRepeatAction(collection) {
           var index, length,
@@ -280,17 +300,25 @@ directive('boomRepeat', ['$parse', '$animate', '$rootScope', function($parse, $a
             cells.push(node[0], node[1]);
           });
 
-          $rootScope.$evalAsync(function () {
-            // first.parent().append(cells);
-            var fragment = document.createDocumentFragment();
-            var length = cells.length, k;
-            for(k = 0; k < length; k += 1) {
-              fragment.appendChild(cells[k]);
-            }
-            // document.getElementsByTagName('body')[0].appendChild(fragment);
-            $element.parent().append(fragment);
-            // console.log('adding fragment');
-          });
+          var fragment = document.createDocumentFragment();
+          var length = cells.length, k;
+          for(k = 0; k < length; k += 1) {
+            fragment.appendChild(cells[k]);
+          }
+
+          var $parent = $element.parent();
+          if ($parent.attr('boom-repeat')) {
+            var parentScope = nextBlockOrder[0].scope.$parent.$parent;
+            parentScope.boomRepeatFragment(fragment);
+          } else {
+
+            $rootScope.$evalAsync(function () {
+              // first.parent().append(cells);
+              // document.getElementsByTagName('body')[0].appendChild(fragment);
+              $element.parent().append(fragment);
+              // console.log('adding fragment');
+            });
+          }
 
         }); // end scope.$watchCollection
 
